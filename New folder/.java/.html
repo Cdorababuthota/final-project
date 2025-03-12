@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personalized News Digest</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    .dashboard {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .article-card {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+    }
+    .article-card h3 {
+      margin: 0;
+    }
+    .article-card p {
+      margin: 5px 0;
+    }
+    .sentiment {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 5px;
+      color: #fff;
+    }
+    .positive {
+      background-color: green;
+    }
+    .negative {
+      background-color: red;
+    }
+    .neutral {
+      background-color: gray;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h1>Personalized News Digest</h1>
+    <div id="preferences">
+      <h2>Set Preferences</h2>
+      <input type="text" id="topics" placeholder="Topics (comma-separated)">
+      <input type="text" id="keywords" placeholder="Keywords (comma-separated)">
+      <input type="text" id="sources" placeholder="Sources (comma-separated)">
+      <button onclick="savePreferences()">Save Preferences</button>
+    </div>
+    <div id="news-feed">
+      <h2>News Feed</h2>
+      <div id="articles"></div>
+    </div>
+  </div>
+
+  <script>
+    // Save user preferences
+    async function savePreferences() {
+      const topics = document.getElementById('topics').value.split(',');
+      const keywords = document.getElementById('keywords').value.split(',');
+      const sources = document.getElementById('sources').value.split(',');
+
+      const response = await fetch('/save-preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topics, keywords, sources })
+      });
+
+      if (response.ok) {
+        alert('Preferences saved!');
+        fetchNews();
+      }
+    }
+
+    // Fetch and display news articles
+    async function fetchNews() {
+      const response = await fetch('/get-news');
+      const articles = await response.json();
+
+      const articlesDiv = document.getElementById('articles');
+      articlesDiv.innerHTML = '';
+
+      articles.forEach(article => {
+        const articleCard = document.createElement('div');
+        articleCard.className = 'article-card';
+
+        const title = document.createElement('h3');
+        title.textContent = article.title;
+
+        const summary = document.createElement('p');
+        summary.textContent = article.summary;
+
+        const sentiment = document.createElement('div');
+        sentiment.className = `sentiment ${article.sentiment_label}`;
+        sentiment.textContent = article.sentiment_label;
+
+        articleCard.appendChild(title);
+        articleCard.appendChild(summary);
+        articleCard.appendChild(sentiment);
+        articlesDiv.appendChild(articleCard);
+      });
+    }
+
+    // Fetch news on page load
+    fetchNews();
+  </script>
+</body>
+</html>

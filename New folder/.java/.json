@@ -1,0 +1,103 @@
+{
+    "nodes": [
+      {
+        "parameters": {},
+        "name": "Start",
+        "type": "n8n-nodes-base.start",
+        "typeVersion": 1,
+        "position": [250, 300]
+      },
+      {
+        "parameters": {
+          "url": "https://newsapi.org/v2/everything",
+          "options": {},
+          "queryParameters": {
+            "apiKey": "YOUR_NEWSAPI_KEY",
+            "q": "AI",
+            "pageSize": 5
+          }
+        },
+        "name": "Fetch News",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 1,
+        "position": [450, 300]
+      },
+      {
+        "parameters": {
+          "url": "https://openrouter.ai/api/v1/chat/completions",
+          "options": {},
+          "headers": {
+            "Authorization": "Bearer YOUR_OPENROUTER_KEY"
+          },
+          "body": {
+            "model": "openai/gpt-4",
+            "messages": [
+              {
+                "role": "user",
+                "content": "Summarize the following article and analyze its sentiment: {{$node["Fetch News"].json["articles"][0]["content"]}}"
+              }
+            ]
+          }
+        },
+        "name": "Process Content",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 1,
+        "position": [650, 300]
+      },
+      {
+        "parameters": {
+          "url": "YOUR_NHOST_GRAPHQL_ENDPOINT",
+          "options": {},
+          "headers": {
+            "Authorization": "Bearer YOUR_NHOST_KEY"
+          },
+          "query": "mutation InsertProcessedArticle($raw_article_id: UUID!, $summary: String!, $sentiment_label: String!, $sentiment_explanation: String!) { insert_processed_articles(objects: { raw_article_id: $raw_article_id, summary: $summary, sentiment_label: $sentiment_label, sentiment_explanation: $sentiment_explanation }) { affected_rows } }",
+          "variables": {
+            "raw_article_id": "{{$node["Fetch News"].json["articles"][0]["id"]}}",
+            "summary": "{{$node["Process Content"].json["choices"][0]["message"]["content"]}}",
+            "sentiment_label": "{{$node["Process Content"].json["sentiment_label"]}}",
+            "sentiment_explanation": "{{$node["Process Content"].json["sentiment_explanation"]}}"
+          }
+        },
+        "name": "Update Database",
+        "type": "n8n-nodes-base.graphql",
+        "typeVersion": 1,
+        "position": [850, 300]
+      }
+    ],
+    "connections": {
+      "Start": {
+        "main": [
+          [
+            {
+              "node": "Fetch News",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch News": {
+        "main": [
+          [
+            {
+              "node": "Process Content",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Process Content": {
+        "main": [
+          [
+            {
+              "node": "Update Database",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    }
+  }
