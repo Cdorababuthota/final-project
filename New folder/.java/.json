@@ -55,7 +55,7 @@
           "variables": {
             "raw_article_id": "{{$node["Fetch News"].json["articles"][0]["id"]}}",
             "summary": "{{$node["Process Content"].json["choices"][0]["message"]["content"]}}",
-            "sentiment_label": "{{$node["Process Content"].json["sentiment_label"]}}",
+            "sentiment_label": "{{$node["Process Content"].json["sentiment_label"]}}", 
             "sentiment_explanation": "{{$node["Process Content"].json["sentiment_explanation"]}}"
           }
         },
