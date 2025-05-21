@@ -2,7 +2,7 @@
     "nodes": [
       {
         "parameters": {},
-        "name": "Start",
+        "name": "Start", 
         "type": "n8n-nodes-base.start",
         "typeVersion": 1,
         "position": [250, 300]
